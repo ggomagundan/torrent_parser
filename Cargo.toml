@@ -1,0 +1,12 @@
+[package]
+name = "torrent_parser"
+version = "0.1.0"
+authors = ["ggomagundan <pbs52@hanmail.net>"]
+
+[dependencies]
+sha1 = "0.1.1"
+log = "0.3"
+
+[dependencies.nom]
+version = "^1.2.4"
+default-features = false
