@@ -2,6 +2,8 @@
 extern crate nom;
 use nom::{IResult, Needed, be_u32, digit};
 
+
+
 //extern crate sha1;
 //use sha1::Sha1;
 
@@ -234,12 +236,28 @@ pub fn metainfo(i: &[u8]) -> Metainfo {
 
 fn main() {
   println!("\n\n{}\n\n", "Start Parsing Torrent File...");
-  parse_torrentfile("ubuntu-16.04.1-server-amd64.torrent");
+  parse_torrentfile("ubuntu-16.04.1-server-amd641.torrent");
   println!("\n\n{}\n\n", "End Parsing Torrent File");
 }
 
 fn parse_torrentfile(filename: &'static str) {
-  let mut f = File::open(&Path::new(filename)).expect("File doesn't exist");
+  let mut f = match File::open(&Path::new(filename)){
+    Ok(f) => f,
+    Err(e) => {
+      use std::io::ErrorKind::*;
+      println!("Got Error: {}", e);
+      match e.kind(){
+        NotFound => {
+          println!("File Not Found");
+        }
+        k => {
+          println!("Error: {:?}", k);
+        }
+      }
+      return;
+    }
+  };
+
   let mut v: Vec<u8>  = Vec::new();
   f.read_to_end(&mut v).ok();
 
@@ -264,5 +282,4 @@ println!("files: {:?}", file_info.files);
   files: Option<Vec<(usize, Vec<String>)>>,
 */
 }
-
 
