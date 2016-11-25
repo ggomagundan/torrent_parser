@@ -30,11 +30,15 @@ struct Hash {
 #[derive(Clone, Debug)]
 pub struct Metainfo {
     announce: String,
+//    announce_list: Option<Vec<String>>,
+//    announce_list: String,
     name: String,
+    comment: String,
     piecelength: usize,
     pieces: Vec<Hash>,
     // exactly one of the two following is None
     length: Option<usize>,
+
     files: Option<Vec<(usize, Vec<String>)>>,
 }
 
@@ -142,10 +146,55 @@ pub fn metainfo(i: &[u8]) -> Metainfo {
     //   'announce' -> {string}
     //   'info'     -> {dictionary}
     
+
     let announce = String::from_utf8(match d.remove(&s2v("announce")).expect("No announce") {
         Bencode::Str(s) => s,
         _ => panic!("announce not a string"),
     }).unwrap();
+/*
+    let announce_list = match d.remove(&s2v("announce-list")) {
+      Some(thing) => match thing {
+        Bencode::List(mut l) => l.drain(..).map(|p| match p {
+          Bencode::Str(s) => String::from_utf8(s).unwrap(),
+          _ => panic!("file annouce-list contains non-string"),
+        }).collect().unwrap(),
+        _ => panic!("files not have annouce-list"),
+      },
+      None => None,
+    };
+
+*/
+
+/*
+   match d.remove(&s2v("announce-list")) {
+      Some(thing) => match thing {
+        Bencode::List(l) => for t in l.into_iter(){
+          match t {
+            Bencode::List(mut li) => match li {
+              Bencode::Str(s) => s,
+              _ => panic!("info not a dictionary"),
+            },
+            _ => panic!("info not a dictionary"),
+          }
+
+        },
+
+      _ => panic!("info not a dictionary"),
+      },
+      _ => panic!("info not a dictionary"),
+   };
+
+
+*/
+ //   let announce_list = "tee".to_string();
+
+    let comment = String::from_utf8(match d.remove(&s2v("comment")).expect("No name") {
+        Bencode::Str(s) => s,
+        _ => panic!("comment not a string"),
+    }).unwrap();
+
+
+
 
     let mut info = match d.remove(&s2v("info")).expect("No info") {
         Bencode::Dict(d) => d,
@@ -166,11 +215,13 @@ pub fn metainfo(i: &[u8]) -> Metainfo {
     // For a single-file torrent, 'length' specifies the file's length.
     // For a multi-file torrent, 'files' specifies the location and length of
     // each file.
-    
+
     let name = String::from_utf8(match info.remove(&s2v("name")).expect("No name") {
         Bencode::Str(s) => s,
         _ => panic!("name not a string"),
     }).unwrap();
+
+
 
     let piecelength = match info.remove(&s2v("piece length")).expect("No piece length") {
         Bencode::Int(i) if i > 0 => i as usize,
@@ -225,7 +276,9 @@ pub fn metainfo(i: &[u8]) -> Metainfo {
 
     Metainfo {
         announce: announce,
+    //    announce_list: announce_list,
         name: name,
+        comment: comment,
         piecelength: piecelength,
         pieces: pieces,
         length: length,
@@ -236,7 +289,7 @@ pub fn metainfo(i: &[u8]) -> Metainfo {
 
 fn main() {
   println!("\n\n{}\n\n", "Start Parsing Torrent File...");
-  parse_torrentfile("ubuntu-16.04.1-server-amd641.torrent");
+  parse_torrentfile("ubuntu-16.04.1-server-amd64.torrent");
   println!("\n\n{}\n\n", "End Parsing Torrent File");
 }
 
@@ -264,8 +317,9 @@ fn parse_torrentfile(filename: &'static str) {
   let file_info = metainfo(&v[..]);
 
 
-println!("announce: {}", file_info.announce);
+println!("announce: {:?}", file_info.announce);
 println!("name: {}", file_info.name);
+println!("comment: {}", file_info.comment);
 println!("piecelength: {}", file_info.piecelength);
 println!("length: {}", file_info.length.unwrap());
 println!("files: {:?}", file_info.files);
